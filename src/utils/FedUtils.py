@@ -1,4 +1,5 @@
 from src.models.MNIST import NNMnist
+import torch.nn as nn
 import torch
 
 def initialize_model(name):
@@ -10,6 +11,6 @@ def initialize_model(name):
 
 def initialize_control_state(model, experiment):
     control_state = initialize_model(experiment)
-    for k, v in model.named_parameters():
-        control_state[k] = torch.zeros_like(v)
+    for param in control_state.parameters():
+        nn.init.constant_(param, 0.0)
     return control_state
