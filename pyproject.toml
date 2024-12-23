@@ -10,6 +10,8 @@ python = "^3.12"
 torchvision = "^0.20.1"
 torch = "^2.5.1"
 numpy = "^2.2.0"
+pandas = "^2.2.3"
+pyyaml = "^6.0.2"
 
 
 [build-system]
