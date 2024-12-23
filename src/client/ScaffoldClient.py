@@ -1,4 +1,4 @@
-from src.utils.FedUtils import initialize_control_state, initialize_model
+from utils.FedUtils import initialize_control_state, initialize_model
 from torch.utils.data import DataLoader
 from torch import nn
 import torch

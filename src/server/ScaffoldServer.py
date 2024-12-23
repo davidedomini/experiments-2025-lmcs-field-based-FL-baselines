@@ -1,4 +1,4 @@
-from src.utils.FedUtils import *
+from utils.FedUtils import *
 
 class ScaffoldServer:
 

@@ -1,4 +1,4 @@
-from src.models.MNIST import NNMnist
+from models.MNIST import NNMnist
 import torch.nn as nn
 import torch
 

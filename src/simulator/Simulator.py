@@ -1,4 +1,4 @@
-from src.server.ScaffoldServer import ScaffoldServer
+from server.ScaffoldServer import ScaffoldServer
 
 
 class Simulator:
