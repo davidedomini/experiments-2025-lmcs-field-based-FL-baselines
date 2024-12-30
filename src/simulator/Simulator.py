@@ -3,13 +3,14 @@ from server.ScaffoldServer import ScaffoldServer
 
 class Simulator:
 
-    def __init__(self, experiment, algorithm, n_clients, areas):
-        self.experiment = experiment
+    def __init__(self, algorithm, partitioning, areas, dataset, n_clients):
+        self.partitioning = partitioning
         self.algorithm = algorithm
-        self.n_clients = n_clients
         self.areas = areas
+        self.dataset = dataset
+        self.n_clients = n_clients
         self.clients = []
-        self.server = self.initialize_server(self.algorithm)
+        self.server = self.initialize_server()
 
 
     def seed_everything(self, seed):
@@ -21,9 +22,24 @@ class Simulator:
             print(f'{name} --> {param}')
 
 
-    def initialize_server(self, algorithm):
-        if algorithm == 'scaffold':
-            return ScaffoldServer(self.experiment)
+    def initialize_server(self):
+        if self.algorithm == 'scaffold':
+            return ScaffoldServer(self.dataset)
         else:
-            raise Exception('Algorithm not supported! Please check :)')
+            raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
+
+    def export_data(self):
+        """
+        Registers new data, you can use it at each time stamp to store training and evaluation data.
+        Important: it does not save the data on a file, you must call the specific method at the end of the simulation!
+        :return: Nothing
+        """
+        pass
+
+    def save_data(self):
+        """
+        Saves the registered data on a file.
+        :return: Nothing
+        """
+        pass

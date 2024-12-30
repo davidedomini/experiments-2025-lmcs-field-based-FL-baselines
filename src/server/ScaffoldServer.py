@@ -2,11 +2,11 @@ from utils.FedUtils import *
 
 class ScaffoldServer:
 
-    def __init__(self, experiment):
-        self.experiment = experiment
+    def __init__(self, dataset):
+        self.dataset = dataset
         self.clients_data = {}
-        self._model = initialize_model(experiment)
-        self._control_state = initialize_control_state(self._model, experiment)
+        self._model = initialize_model(dataset)
+        self._control_state = initialize_control_state(self._model, dataset)
 
 
     def aggregate(self):
