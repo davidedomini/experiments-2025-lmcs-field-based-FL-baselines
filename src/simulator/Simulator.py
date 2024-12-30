@@ -2,6 +2,9 @@ import torch
 import random
 import numpy as np
 import pandas as pd
+import utils.FedUtils as utils
+from torch.utils.data import Dataset, Subset
+from torchvision import datasets, transforms
 from client.FedAvgClient import FedAvgClient
 from server.FedAvgServer import FedAvgServer
 from client.ScaffoldClient import ScaffoldClient
@@ -37,10 +40,11 @@ class Simulator:
         self.save_data()
 
     def initialize_clients(self):
+        client_data_mapping = self.map_client_to_data()
         if self.algorithm == 'fedavg':
-            return [FedAvgClient(self.dataset_name, 32, 2) for _ in range(self.n_clients)]
+            return [FedAvgClient(self.dataset_name, client_data_mapping[index], 32, 2) for index in range(self.n_clients)]
         elif self.algorithm == 'scaffold':
-            return [ScaffoldClient(self.dataset_name, 32, 2) for _ in range(self.n_clients)]
+            return [ScaffoldClient(self.dataset_name, client_data_mapping[index],32, 2) for index in range(self.n_clients)]
         else:
             raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
@@ -85,6 +89,32 @@ class Simulator:
 
     def server_update(self):
         self.server.aggregate()
+
+    def map_client_to_data(self) -> dict[int, Subset]:
+        d = self.get_dataset()
+        clients_split = np.array_split(list(range(self.n_clients)), self.areas)
+        mapping_area_clients = { areaId: list(clients_split[areaId]) for areaId in range(self.areas) }
+        if self.partitioning.lower() == 'hard':
+            mapping = utils.hard_non_iid_mapping(self.areas, len(d.classes))
+        else:
+            raise Exception(f'Partitioning {self.partitioning} not supported! Please check :)')
+        distribution_per_area = utils.partitioning(mapping, d)
+        mapping_client_data = {}
+        for area in mapping_area_clients.keys():
+            clients = mapping_area_clients[area]
+            indexes = distribution_per_area[area]
+            split = np.array_split(indexes, len(clients))
+            for i, c in enumerate(clients):
+                mapping_client_data[c] = Subset(d, split[i])
+        return mapping_client_data
+
+    def get_dataset(self, train = True):
+        transform = transforms.Compose([transforms.ToTensor()])
+        if self.dataset_name == 'MNIST':
+            dataset = datasets.MNIST(root='dataset', train=train, download=True, transform=transform)
+            return dataset
+        else:
+            raise Exception(f'Dataset {self.dataset_name} not supported! Please check :)')
 
     def export_data(self, global_round, training_loss, evaluation_loss, evaluation_accuracy):
         """
