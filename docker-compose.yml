@@ -10,7 +10,7 @@ services:
     environment:
       DATA_OWNER: 1000:1000
       LEARNING_HYPERPARAMETERS: |
-        Classic: 
+        FedAvg: 
           partitioning: [Hard, Dirichlet, IID]
           areas: [3, 5, 9]
           seed: [0, 1, 2, 3, 4, 5]
