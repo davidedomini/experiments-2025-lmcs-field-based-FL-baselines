@@ -1,15 +1,18 @@
+import pandas as pd
 from client.FedAvgClient import FedAvgClient
 from client.ScaffoldClient import ScaffoldClient
 from server.ScaffoldServer import ScaffoldServer
 
 class Simulator:
 
-    def __init__(self, algorithm, partitioning, areas, dataset, n_clients):
+    def __init__(self, algorithm, partitioning, areas, dataset, n_clients, data_folder):
         self.partitioning = partitioning
         self.algorithm = algorithm
         self.areas = areas
         self.dataset = dataset
         self.n_clients = n_clients
+        self.export_path = f'{data_folder}/algorithm-{self.algorithm}_dataset-{dataset}_partitioning-{self.partitioning}_areas-{self.areas}_clients-{self.n_clients}'
+        self.simulation_data = pd.DataFrame(columns=['Round','TrainingLoss', 'ValidationLoss', 'ValidationAccuracy'])
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
 
@@ -17,12 +20,13 @@ class Simulator:
         pass
 
     def start(self, global_rounds):
-        for round in range(global_rounds):
-            print(f'Starting global round {round}')
+        for r in range(global_rounds):
+            print(f'Starting global round {r}')
             self.notify_clients()
-            self.clients_update()
+            self.clients_update(r)
             self.notify_server()
             self.server_update()
+        self.save_data()
 
     def initialize_clients(self):
         if self.algorithm == 'fedavg':
@@ -45,9 +49,20 @@ class Simulator:
             elif self.algorithm == 'scaffold':
                 client.notify_updates(self.server.model, self.server.control_state)
 
-    def clients_update(self):
+    def clients_update(self, global_round):
+        training_losses = []
+        evaluation_losses = []
+        evaluation_accuracies = []
         for client in self.clients:
-            client.train()
+            train_loss = client.train()
+            evaluation_loss, evaluation_accuracy = client.evaluate()
+            training_losses.append(train_loss)
+            evaluation_losses.append(evaluation_loss)
+            evaluation_accuracies.append(evaluation_accuracy)
+        average_training_loss = sum(training_losses) / len(training_losses)
+        average_evaluation_loss = sum(evaluation_losses) / len(evaluation_losses)
+        average_evaluation_accuracy = sum(evaluation_accuracies) / len(evaluation_accuracies)
+        self.export_data(global_round, average_training_loss, average_evaluation_loss, average_evaluation_accuracy)
 
     def notify_server(self):
         client_data = {}
@@ -61,17 +76,20 @@ class Simulator:
     def server_update(self):
         self.server.aggregate()
 
-    def export_data(self):
+    def export_data(self, global_round, training_loss, evaluation_loss, evaluation_accuracy):
         """
         Registers new data, you can use it at each time stamp to store training and evaluation data.
         Important: it does not save the data on a file, you must call the specific method at the end of the simulation!
         :return: Nothing
         """
-        pass
+        self.simulation_data = self.simulation_data._append(
+            {'Round': global_round,'TrainingLoss': training_loss, 'ValidationLoss': evaluation_loss, 'ValidationAccuracy': evaluation_accuracy},
+            ignore_index=True
+        )
 
     def save_data(self):
         """
         Saves the registered data on a file.
         :return: Nothing
         """
-        pass
+        self.simulation_data.to_csv(self.export_path, index=False)
