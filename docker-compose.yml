@@ -1,4 +1,22 @@
 services:
+
+  experiment-fedavg:
+    hostname: fedavg
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: .
+    volumes:
+      - ./data:/data
+    environment:
+      DATA_OWNER: 1000:1000
+      LEARNING_HYPERPARAMETERS: |
+        Classic: 
+          partitioning: [Hard, Dirichlet, IID]
+          areas: [3, 5, 9]
+          seed: [0, 1, 2, 3, 4, 5]
+          dataset: [MNIST]
+          clients: [10]
+
   experiment-scaffold:
     hostname: scaffold
     build:
