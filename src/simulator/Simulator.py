@@ -1,3 +1,6 @@
+import torch
+import random
+import numpy as np
 import pandas as pd
 from client.FedAvgClient import FedAvgClient
 from client.ScaffoldClient import ScaffoldClient
@@ -17,7 +20,11 @@ class Simulator:
         self.server = self.initialize_server()
 
     def seed_everything(self, seed):
-        pass
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.cuda.manual_seed(seed)
 
     def start(self, global_rounds):
         for r in range(global_rounds):

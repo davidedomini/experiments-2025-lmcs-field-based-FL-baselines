@@ -37,22 +37,14 @@ def check_hyperparameters(hyperparams):
 if __name__ == '__main__':
 
     HYPERPARAMETERS_NAME = 'LEARNING_HYPERPARAMETERS'
+    data_dir = os.environ['DATA_DIR']
     experiment_name, hyperparameters = get_hyperparameters()
     check_hyperparameters(hyperparameters)
     all_experiments = list(product(*hyperparameters.values()))
 
     for partitioning, areas, seed, dataset, clients in all_experiments:
         print(partitioning, areas, seed, dataset, clients)
-        simulator = Simulator(experiment_name, partitioning, areas, dataset, clients)
-        simulator.start()
+        simulator = Simulator(experiment_name, partitioning, areas, dataset, clients, data_dir)
+        simulator.seed_everything(seed)
+        simulator.start(50)
         break
-    # print(f'{experiment_name} --> {hyperparameters}')
-    # print(all_experiments)
-    # experiment = 'MNIST'
-    # algorithm  = 'scaffold'
-    # n_clients  = 10
-    # areas      = 3
-    #
-    # simulator = Simulator(experiment, algorithm, n_clients, areas)
-    #
-    # simulator.start()
