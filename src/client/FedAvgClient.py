@@ -45,7 +45,6 @@ class FedAvgClient:
             outputs = self._model(images)
             batch_loss = criterion(outputs, labels)
             loss += batch_loss.item()
-
             _, pred_labels = torch.max(outputs, 1)
             pred_labels = pred_labels.view(-1)
             correct += torch.sum(torch.eq(pred_labels, labels)).item()
