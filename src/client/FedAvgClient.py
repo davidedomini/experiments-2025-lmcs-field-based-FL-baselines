@@ -1,18 +1,20 @@
-from utils.FedUtils import initialize_model
-from torch.utils.data import DataLoader
-from torch import nn
 import torch
+from torch import nn
+from utils.FedUtils import initialize_model
+from torch.utils.data import DataLoader, random_split
 
 class FedAvgClient:
 
-    def __init__(self, dataset, batch_size, epochs):
+    def __init__(self, dataset_name, dataset, batch_size, epochs):
+        self.dataset_name = dataset_name
         self.dataset = dataset
         self.batch_size = batch_size
         self.epochs = epochs
-        self._model = initialize_model(dataset)
-        # TODO - add data
-        self.training_set = None
-        self.validation_set = None
+        self._model = initialize_model(dataset_name)
+        dataset_size = len(self.dataset)
+        training_size = int(dataset_size * 0.8)
+        validation_size = dataset_size - training_size
+        self.training_set, self.validation_set = random_split(self.dataset, [training_size, validation_size])
         self.lr = 0.001
         self.weight_decay=1e-4
 
