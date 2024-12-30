@@ -12,7 +12,9 @@ services:
         Scaffold: 
           partitioning: [Hard, Dirichlet, IID]
           areas: [3, 5, 9]
-          seed: { min: 0, max: 5, step: 1 }
+          seed: [0, 1, 2, 3, 4, 5]
+          dataset: [MNIST]
+          clients: [10]
 
 #  experiment-fedproxy:
 #    hostname: fedproxy
