@@ -1,7 +1,7 @@
 import copy
 from utils.FedUtils import *
 
-class ScaffoldServer:
+class FedAvgServer:
 
     def __init__(self, dataset):
         self.dataset = dataset
@@ -13,7 +13,7 @@ class ScaffoldServer:
         Aggregates N models following the FedAvg algorithm.
         :return: Nothing
         """
-        models = list(self.clients_data.values())
+        models = [m.state_dict() for m in self.clients_data.values()]
         w_avg = copy.deepcopy(models[0])
 
         for key in w_avg.keys():
@@ -25,7 +25,7 @@ class ScaffoldServer:
         self.model.load_state_dict(w_avg)
 
     def receive_client_update(self, client_data):
-        self.clients_data[client_data.client_id] = client_data
+        self.clients_data = client_data
 
     @property
     def model(self):
