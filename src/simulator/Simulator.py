@@ -3,18 +3,19 @@ import random
 import numpy as np
 import pandas as pd
 from client.FedAvgClient import FedAvgClient
+from server.FedAvgServer import FedAvgServer
 from client.ScaffoldClient import ScaffoldClient
 from server.ScaffoldServer import ScaffoldServer
 
 class Simulator:
 
-    def __init__(self, algorithm, partitioning, areas, dataset, n_clients, data_folder):
+    def __init__(self, algorithm, partitioning, areas, dataset_name, n_clients, data_folder):
         self.partitioning = partitioning
         self.algorithm = algorithm
         self.areas = areas
-        self.dataset = dataset
+        self.dataset_name = dataset_name
         self.n_clients = n_clients
-        self.export_path = f'{data_folder}/algorithm-{self.algorithm}_dataset-{dataset}_partitioning-{self.partitioning}_areas-{self.areas}_clients-{self.n_clients}'
+        self.export_path = f'{data_folder}/algorithm-{self.algorithm}_dataset-{dataset_name}_partitioning-{self.partitioning}_areas-{self.areas}_clients-{self.n_clients}'
         self.simulation_data = pd.DataFrame(columns=['Round','TrainingLoss', 'ValidationLoss', 'ValidationAccuracy'])
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
@@ -37,15 +38,17 @@ class Simulator:
 
     def initialize_clients(self):
         if self.algorithm == 'fedavg':
-            return [FedAvgClient(self.dataset, 32, 2) for _ in range(self.n_clients)]
+            return [FedAvgClient(self.dataset_name, 32, 2) for _ in range(self.n_clients)]
         elif self.algorithm == 'scaffold':
-            return [ScaffoldClient(self.dataset, 32, 2) for _ in range(self.n_clients)]
+            return [ScaffoldClient(self.dataset_name, 32, 2) for _ in range(self.n_clients)]
         else:
             raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
     def initialize_server(self):
-        if self.algorithm == 'scaffold':
-            return ScaffoldServer(self.dataset)
+        if self.algorithm == 'fedavg':
+            return FedAvgServer(self.dataset_name)
+        elif self.algorithm == 'scaffold':
+            return ScaffoldServer(self.dataset_name)
         else:
             raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
