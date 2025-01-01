@@ -42,7 +42,7 @@ class Simulator:
     def initialize_clients(self):
         client_data_mapping = self.map_client_to_data()
         if self.algorithm == 'fedavg':
-            return [FedAvgClient(self.dataset_name, client_data_mapping[index], 32, 2) for index in range(self.n_clients)]
+            return [FedAvgClient(index, self.dataset_name, client_data_mapping[index], 32, 2) for index in range(self.n_clients)]
         elif self.algorithm == 'scaffold':
             return [ScaffoldClient(self.dataset_name, client_data_mapping[index],32, 2) for index in range(self.n_clients)]
         else:
@@ -103,6 +103,7 @@ class Simulator:
         for area in mapping_area_clients.keys():
             clients = mapping_area_clients[area]
             indexes = distribution_per_area[area]
+            random.shuffle(indexes)
             split = np.array_split(indexes, len(clients))
             for i, c in enumerate(clients):
                 mapping_client_data[c] = Subset(d, split[i])
