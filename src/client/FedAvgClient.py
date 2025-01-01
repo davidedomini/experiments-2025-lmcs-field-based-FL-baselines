@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader, random_split
 
 class FedAvgClient:
 
-    def __init__(self, dataset_name, dataset, batch_size, epochs):
+    def __init__(self, mid, dataset_name, dataset, batch_size, epochs):
+        self.mid = mid
         self.dataset_name = dataset_name
         self.dataset = dataset
         self.batch_size = batch_size
@@ -19,6 +20,8 @@ class FedAvgClient:
         self.weight_decay=1e-4
 
     def train(self):
+        labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
+        print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
         train_loader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         loss_func = nn.CrossEntropyLoss()
