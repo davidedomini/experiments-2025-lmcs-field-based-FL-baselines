@@ -26,6 +26,12 @@ def hard_non_iid_mapping(areas: int, labels: int) -> np.ndarray:
         distribution[rows, elems] = 1
     return distribution
 
+def iid_mapping(areas: int, labels: int) -> np.ndarray:
+    percentage = 1 / labels
+    distribution = np.zeros((areas, labels))
+    distribution.fill(percentage)
+    return distribution
+
 def partitioning(distribution: np.ndarray, dataset: Dataset) -> dict[int, list[int]]:
     targets = dataset.targets
     areas = distribution.shape[0]
