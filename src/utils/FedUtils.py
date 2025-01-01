@@ -2,7 +2,8 @@ import torch
 import numpy as np
 import torch.nn as nn
 from models.MNIST import NNMnist
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset, Subset, DataLoader
+
 
 def initialize_model(name):
     if name == 'MNIST':
@@ -43,3 +44,19 @@ def partitioning(distribution: np.ndarray, dataset: Dataset) -> dict[int, list[i
                 selected_indices.extend(target_indices[:selected_count].tolist())
         partitions[area] = selected_indices
     return partitions
+
+def test_model(model, dataset):
+    criterion = nn.NLLLoss()
+    model.eval()
+    loss, total, correct = 0.0, 0.0, 0.0
+    data_loader = DataLoader(dataset, batch_size=32, shuffle=False)
+    for batch_index, (images, labels) in enumerate(data_loader):
+        outputs = model(images)
+        batch_loss = criterion(outputs, labels)
+        loss += batch_loss.item()
+        _, pred_labels = torch.max(outputs, 1)
+        pred_labels = pred_labels.view(-1)
+        correct += torch.sum(torch.eq(pred_labels, labels)).item()
+        total += len(labels)
+    accuracy = correct / total
+    return loss, accuracy
