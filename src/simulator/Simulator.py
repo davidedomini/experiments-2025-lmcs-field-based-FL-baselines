@@ -22,6 +22,8 @@ class Simulator:
         self.simulation_data = pd.DataFrame(columns=['Round','TrainingLoss', 'ValidationLoss', 'ValidationAccuracy'])
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
+        self.batch_size = 32
+        self.local_epochs = 2
 
     def seed_everything(self, seed):
         random.seed(seed)
@@ -37,14 +39,15 @@ class Simulator:
             self.clients_update(r)
             self.notify_server()
             self.server_update()
+        self.test_global_model()
         self.save_data()
 
     def initialize_clients(self):
         client_data_mapping = self.map_client_to_data()
         if self.algorithm == 'fedavg':
-            return [FedAvgClient(index, self.dataset_name, client_data_mapping[index], 32, 2) for index in range(self.n_clients)]
+            return [FedAvgClient(index, self.dataset_name, client_data_mapping[index], self.batch_size, self.local_epochs) for index in range(self.n_clients)]
         elif self.algorithm == 'scaffold':
-            return [ScaffoldClient(self.dataset_name, client_data_mapping[index],32, 2) for index in range(self.n_clients)]
+            return [ScaffoldClient(self.dataset_name, client_data_mapping[index], self.batch_size, self.local_epochs) for index in range(self.n_clients)]
         else:
             raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
@@ -96,6 +99,8 @@ class Simulator:
         mapping_area_clients = { areaId: list(clients_split[areaId]) for areaId in range(self.areas) }
         if self.partitioning.lower() == 'hard':
             mapping = utils.hard_non_iid_mapping(self.areas, len(d.classes))
+        elif self.partitioning.lower() == 'iid':
+            mapping = utils.iid_mapping(self.areas, len(d.classes))
         else:
             raise Exception(f'Partitioning {self.partitioning} not supported! Please check :)')
         distribution_per_area = utils.partitioning(mapping, d)
@@ -108,6 +113,12 @@ class Simulator:
             for i, c in enumerate(clients):
                 mapping_client_data[c] = Subset(d, split[i])
         return mapping_client_data
+
+    def test_global_model(self):
+        model = self.server.model
+        dataset = self.get_dataset(False)
+        _, accuracy = utils.test_model(model, dataset)
+        print(f'Test accuracy {accuracy}')
 
     def get_dataset(self, train = True):
         transform = transforms.Compose([transforms.ToTensor()])
