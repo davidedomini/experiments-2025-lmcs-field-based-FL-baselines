@@ -38,6 +38,7 @@ def iid_mapping(areas: int, labels: int) -> np.ndarray:
 def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]:
     indices = data.indices
     targets = data.dataset.targets
+    class_counts = torch.bincount(targets[indices])
     class_to_indices = {}
     for index in indices:
         c = targets[index].item()
@@ -53,7 +54,7 @@ def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]
     for area in range(areas):
         elements_per_class_in_area = elements_per_class[area, :].tolist()
         for c in range(targets_cardinality):
-            elements = elements_per_class_in_area[c]
+            elements = min(elements_per_class_in_area[c], class_counts[c].item())
             selected_indices = random.sample(class_to_indices[c], elements)
             partitions[area].extend(selected_indices)
     return partitions
