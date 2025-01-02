@@ -26,7 +26,7 @@ def hard_non_iid_mapping(areas: int, labels: int) -> np.ndarray:
     distribution = np.zeros((areas, labels))
     for i, elems in enumerate(split_classes_per_area):
         rows = [i for _ in elems]
-        distribution[rows, elems] = 1
+        distribution[rows, elems] = 1 / len(elems)
     return distribution
 
 def iid_mapping(areas: int, labels: int) -> np.ndarray:
