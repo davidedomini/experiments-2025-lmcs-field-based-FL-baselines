@@ -1,3 +1,6 @@
+import math
+import random
+
 import torch
 import numpy as np
 import torch.nn as nn
@@ -32,30 +35,34 @@ def iid_mapping(areas: int, labels: int) -> np.ndarray:
     distribution.fill(percentage)
     return distribution
 
-def partitioning(distribution: np.ndarray, dataset: Dataset) -> dict[int, list[int]]:
-    targets = dataset.targets
+def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]:
+    indices = data.indices
+    targets = data.dataset.targets
+    class_to_indices = {}
+    for index in indices:
+        c = targets[index].item()
+        if c in class_to_indices:
+            class_to_indices[c].append(index)
+        else:
+            class_to_indices[c] = [index]
     areas = distribution.shape[0]
     targets_cardinality = distribution.shape[1]
-    class_counts = torch.bincount(targets)
-    partitions = {}
+    max_examples_per_area = int(math.floor(len(indices) / areas))
+    elements_per_class =  torch.floor(torch.tensor(distribution) * max_examples_per_area).to(torch.int)
+    partitions = { a: [] for a in range(areas) }
     for area in range(areas):
-        area_distribution = distribution[area, :]
-        elements_per_class = torch.tensor(area_distribution) * class_counts
-        elements_per_class = torch.floor(elements_per_class).to(torch.int)
-        selected_indices = []
-        for label in range(targets_cardinality):
-            target_indices = torch.where(targets == label)[0]
-            selected_count = min(len(target_indices), elements_per_class[label].item())
-            if selected_count > 0:
-                selected_indices.extend(target_indices[:selected_count].tolist())
-        partitions[area] = selected_indices
+        elements_per_class_in_area = elements_per_class[area, :].tolist()
+        for c in range(targets_cardinality):
+            elements = elements_per_class_in_area[c]
+            selected_indices = random.sample(class_to_indices[c], elements)
+            partitions[area].extend(selected_indices)
     return partitions
 
-def test_model(model, dataset):
+def test_model(model, dataset, batch_size):
     criterion = nn.NLLLoss()
     model.eval()
     loss, total, correct = 0.0, 0.0, 0.0
-    data_loader = DataLoader(dataset, batch_size=32, shuffle=False)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     for batch_index, (images, labels) in enumerate(data_loader):
         outputs = model(images)
         batch_loss = criterion(outputs, labels)
