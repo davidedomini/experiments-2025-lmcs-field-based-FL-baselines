@@ -72,18 +72,10 @@ class Simulator:
 
     def clients_update(self):
         training_losses = []
-        # evaluation_losses = []
-        # evaluation_accuracies = []
         for client in self.clients:
             train_loss = client.train()
-            # evaluation_loss, evaluation_accuracy = client.evaluate()
             training_losses.append(train_loss)
-            # evaluation_losses.append(evaluation_loss)
-            # evaluation_accuracies.append(evaluation_accuracy)
         average_training_loss = sum(training_losses) / len(training_losses)
-        # average_evaluation_loss = sum(evaluation_losses) / len(evaluation_losses)
-        # average_evaluation_accuracy = sum(evaluation_accuracies) / len(evaluation_accuracies)
-        # self.export_data(global_round, average_training_loss, average_evaluation_loss, average_evaluation_accuracy)
         return average_training_loss
 
     def notify_server(self):
