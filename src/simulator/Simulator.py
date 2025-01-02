@@ -30,8 +30,9 @@ class Simulator:
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-        torch.backends.cudnn.deterministic = True
         torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     def start(self, global_rounds):
         for r in range(global_rounds):
@@ -114,10 +115,7 @@ class Simulator:
             mapping = utils.iid_mapping(self.areas, len(self.complete_dataset.classes))
         else:
             raise Exception(f'Partitioning {self.partitioning} not supported! Please check :)')
-        print(mapping)
-        print(self.complete_dataset.targets.shape)
-        print(self.complete_dataset.targets[self.training_data.indices].shape)
-        distribution_per_area = utils.partitioning(mapping, self.complete_dataset.targets[self.training_data.indices])
+        distribution_per_area = utils.partitioning(mapping, self.training_data)#, self.complete_dataset.targets[self.training_data.indices])
         mapping_client_data = {}
         for area in mapping_area_clients.keys():
             clients = mapping_area_clients[area]
@@ -125,7 +123,7 @@ class Simulator:
             random.shuffle(indexes)
             split = np.array_split(indexes, len(clients))
             for i, c in enumerate(clients):
-                mapping_client_data[c] = Subset(self.training_data, split[i])
+                mapping_client_data[c] = Subset(self.complete_dataset, split[i])
         return mapping_client_data
 
     def test_global_model(self, validation = True):
