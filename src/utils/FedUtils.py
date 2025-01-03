@@ -18,7 +18,7 @@ def initialize_control_state(experiment):
     control_state = initialize_model(experiment)
     for param in control_state.parameters():
         nn.init.constant_(param, 0.0)
-    return control_state
+    return control_state.state_dict()
 
 def hard_non_iid_mapping(areas: int, labels: int) -> np.ndarray:
     labels_set = np.arange(labels)

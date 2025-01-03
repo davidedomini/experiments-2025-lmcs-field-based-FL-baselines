@@ -14,7 +14,6 @@ class ScaffoldClient:
         self.training_set = dataset
         self.batch_size = batch_size
         self._model = initialize_model(dataset_name)
-        self.global_model_state = initialize_model(dataset_name)
         self.server_control_state = initialize_control_state(dataset_name)
         self._client_control_state = initialize_control_state(dataset_name)
 
@@ -23,8 +22,8 @@ class ScaffoldClient:
         print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
         train_loader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        ccs_dict = self._client_control_state.state_dict()
-        scs_dict = self.server_control_state.state_dict()
+        ccs_dict = self._client_control_state
+        scs_dict = self.server_control_state
         loss_func = nn.CrossEntropyLoss()
         losses = []
         tau = 0
@@ -55,9 +54,9 @@ class ScaffoldClient:
     def update_control_state(self, tau):
         pass
 
-    def notify_updates(self, global_model_state, server_control_state):
-        self.global_model_state = global_model_state
-        self.server_control_state = server_control_state
+    def notify_updates(self, global_model, server_control_state):
+        self._model.load_state_dict(global_model.state_dict())
+        self.server_control_state = server_control_state.state_dict()
 
     @property
     def model(self):
