@@ -1,54 +1,70 @@
-from utils.FedUtils import initialize_control_state, initialize_model
-from torch.utils.data import DataLoader
-from torch import nn
-import torch
 import copy
+import torch
+from torch import nn
+from torch.utils.data import DataLoader
+from utils.FedUtils import initialize_control_state, initialize_model
 
 class ScaffoldClient:
 
-    def __init__(self, experiment, batch_size, epochs):
-        self.experiment = experiment
-        self.model = initialize_model(experiment)
-        self.client_control_state = initialize_control_state(self.model)
-        self.global_model_state = {}
-        self.server_control_state = {}
-        self.batch_size = batch_size
-        # TODO - add data
-        self.training_set = None
-        self.validation_set = None
+    def __init__(self, mid, dataset_name, dataset, batch_size, epochs):
+        self.mid = mid
         self.lr = 0.001
-        self.weight_decay=1e-4
         self.epochs = epochs
+        self.weight_decay=1e-4
+        self.training_set = dataset
+        self.batch_size = batch_size
+        self._model = initialize_model(dataset_name)
+        self.global_model_state = initialize_model(dataset_name)
+        self.server_control_state = initialize_control_state(dataset_name)
+        self._client_control_state = initialize_control_state(dataset_name)
 
     def train(self):
-
+        labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
+        print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
         train_loader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
-        global_state_dict = copy.deepcopy(self.model.state_dict())
-        scv_state = self.server_control_state.state_dict() # TODO - fix it
-        ccv_state = self.client_control_state.state_dict()
-        tau = 0
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        optimizer = torch.optim.Adam(self._model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        ccs_dict = self._client_control_state.state_dict()
+        scs_dict = self.server_control_state.state_dict()
         loss_func = nn.CrossEntropyLoss()
         losses = []
-
+        tau = 0
         for epoch in range(self.epochs):
+            batch_losses = []
             for step, (images, labels) in enumerate(train_loader):
                 with torch.enable_grad():
-                    self.model.train()
-                    outputs = self.model(images)
+                    self._model.train()
+                    outputs = self._model(images)
                     loss = loss_func(outputs, labels)
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
+                    batch_losses.append(loss.item())
                     tau = tau + 1
-                    losses.append(loss.item())
-                    state_dict = self.model.state_dict()
-                    for key in state_dict:
-                        state_dict[key] = state_dict[key] - self.lr * (scv_state[key] - ccv_state[key])
-                    self.model.load_state_dict(state_dict)
+                    model_dict = self._model.state_dict()
+                    for key in model_dict:
+                        # Eq (3) in Scaffold paper but simplified since optimizer already computes the term (y_i - lr * g(y_i))
+                        model_dict[key] = model_dict[key] - self.lr * (scs_dict[key] - ccs_dict[key])
+                    self._model.load_state_dict(model_dict)
+            mean_epoch_loss = sum(batch_losses)/len(batch_losses)
+            losses.append(mean_epoch_loss)
+
+        self.update_control_state(tau)
+
+        return sum(losses)/len(losses)
+
+    def update_control_state(self, tau):
+        pass
 
     def notify_updates(self, global_model_state, server_control_state):
         self.global_model_state = global_model_state
         self.server_control_state = server_control_state
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def client_control_state(self):
+        return self._client_control_state
 
 
