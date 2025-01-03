@@ -3,12 +3,12 @@ import random
 import numpy as np
 import pandas as pd
 import utils.FedUtils as utils
-from torch.utils.data import Dataset, Subset, random_split
 from torchvision import datasets, transforms
 from client.FedAvgClient import FedAvgClient
 from server.FedAvgServer import FedAvgServer
 from client.ScaffoldClient import ScaffoldClient
 from server.ScaffoldServer import ScaffoldServer
+from torch.utils.data import Subset, random_split
 
 class Simulator:
 
