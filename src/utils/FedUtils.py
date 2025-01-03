@@ -1,12 +1,10 @@
 import math
 import random
-
 import torch
 import numpy as np
 import torch.nn as nn
 from models.MNIST import NNMnist
 from torch.utils.data import Dataset, Subset, DataLoader
-
 
 def initialize_model(name):
     if name == 'MNIST':
