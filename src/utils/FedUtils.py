@@ -14,7 +14,7 @@ def initialize_model(name):
     else:
         raise Exception(f'Model {name} not implemented! Please check :)')
 
-def initialize_control_state(model, experiment):
+def initialize_control_state(experiment):
     control_state = initialize_model(experiment)
     for param in control_state.parameters():
         nn.init.constant_(param, 0.0)
