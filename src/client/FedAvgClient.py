@@ -7,14 +7,12 @@ class FedAvgClient:
 
     def __init__(self, mid, dataset_name, dataset, batch_size, epochs):
         self.mid = mid
-        self.dataset_name = dataset_name
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.epochs = epochs
-        self._model = initialize_model(dataset_name)
-        self.training_set = dataset
         self.lr = 0.001
+        self.epochs = epochs
         self.weight_decay=1e-4
+        self.batch_size = batch_size
+        self.training_set = dataset
+        self._model = initialize_model(dataset_name)
 
     def train(self):
         labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
