@@ -12,9 +12,9 @@ from torch.utils.data import Subset, random_split
 
 class Simulator:
 
-    def __init__(self, algorithm, partitioning, areas, dataset_name, n_clients, data_folder):
-        self.batch_size = 32
-        self.local_epochs = 2
+    def __init__(self, algorithm, partitioning, areas, dataset_name, n_clients, batch_size, local_epochs, data_folder):
+        self.batch_size = batch_size
+        self.local_epochs = local_epochs
         self.dataset_name = dataset_name
         self.complete_dataset, self.training_data, self.validation_data = self.initialize_data()
         self.partitioning = partitioning
