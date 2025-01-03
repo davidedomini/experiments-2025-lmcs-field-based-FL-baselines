@@ -63,7 +63,7 @@ class ScaffoldClient:
     def notify_updates(self, global_model, server_control_state):
         self._model.load_state_dict(global_model.state_dict())
         self.global_model.load_state_dict(global_model.state_dict())
-        self.server_control_state = server_control_state.state_dict()
+        self.server_control_state = server_control_state
 
     @property
     def model(self):
