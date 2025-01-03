@@ -12,9 +12,11 @@ class ScaffoldServer:
     def aggregate(self):
         n = len(self.clients_data.keys())
 
-        for key in self._model:
+        model_dict = self._model.state_dict()
+        for key in model_dict:
             # First point of Eq (5) in Scaffold paper
-            self._model[key] = self._model[key] + ((1/n) * self.sum_models_delta(key))
+            model_dict[key] = model_dict[key] + ((1/n) * self.sum_models_delta(key))
+        self._model.load_state_dict(model_dict)
 
         for key in self._control_state:
             # Second point of Eq (5) in Scaffold paper
