@@ -14,6 +14,7 @@ class ScaffoldClient:
         self.training_set = dataset
         self.batch_size = batch_size
         self._model = initialize_model(dataset_name)
+        self.global_model = self._model
         self.server_control_state = initialize_control_state(dataset_name)
         self._client_control_state = initialize_control_state(dataset_name)
 
@@ -52,10 +53,17 @@ class ScaffoldClient:
         return sum(losses)/len(losses)
 
     def update_control_state(self, tau):
-        pass
+        local_model_dict = self._model.state_dict()
+        global_model_dict = self.global_model.state_dict()
+        ccs_dict = self._client_control_state
+        scs_dict = self.server_control_state
+        for key in ccs_dict:
+            # Option II of Eq (4) in Scaffold paper
+            ccs_dict[key] = ccs_dict[key] - scs_dict[key] + ((1 / (tau * self.lr)) * (global_model_dict[key] - local_model_dict[key]))
 
     def notify_updates(self, global_model, server_control_state):
         self._model.load_state_dict(global_model.state_dict())
+        self.global_model.load_state_dict(global_model.state_dict())
         self.server_control_state = server_control_state.state_dict()
 
     @property
@@ -65,5 +73,3 @@ class ScaffoldClient:
     @property
     def client_control_state(self):
         return self._client_control_state
-
-
