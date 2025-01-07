@@ -125,7 +125,11 @@ class Simulator:
         else:
             dataset = self.get_dataset(False)
         loss, accuracy = utils.test_model(model, dataset, self.batch_size)
-        print(f'Test accuracy {accuracy} test loss {loss}')
+        if validation:
+            print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
+        else:
+            data = pd.DataFrame({'Loss': [loss], 'Accuracy': [accuracy]})
+            data.to_csv(f'{self.export_path}-test.csv', index=False)
         return loss, accuracy
 
     def get_dataset(self, train = True):
@@ -156,4 +160,4 @@ class Simulator:
         Saves the registered data on a file.
         :return: Nothing
         """
-        self.simulation_data.to_csv(self.export_path, index=False)
+        self.simulation_data.to_csv(f'{self.export_path}.csv', index=False)
