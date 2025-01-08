@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pandas as pd
 import utils.FedUtils as utils
+from collections import Counter
 from torchvision import datasets, transforms
 from client.FedAvgClient import FedAvgClient
 from server.FedAvgServer import FedAvgServer
@@ -103,11 +104,15 @@ class Simulator:
         mapping_area_clients = { areaId: list(clients_split[areaId]) for areaId in range(self.areas) }
         if self.partitioning.lower() == 'hard':
             mapping = utils.hard_non_iid_mapping(self.areas, len(self.complete_dataset.classes))
+            distribution_per_area = utils.partitioning(mapping, self.training_data)
         elif self.partitioning.lower() == 'iid':
             mapping = utils.iid_mapping(self.areas, len(self.complete_dataset.classes))
+            distribution_per_area = utils.partitioning(mapping, self.training_data)
+        elif self.partitioning.lower() == 'dirichlet':
+            distribution_per_area = utils.dirichlet_partitioning(self.training_data, self.areas, 0.5)
+            self.save_distribution_heatmap(distribution_per_area)
         else:
             raise Exception(f'Partitioning {self.partitioning} not supported! Please check :)')
-        distribution_per_area = utils.partitioning(mapping, self.training_data)#, self.complete_dataset.targets[self.training_data.indices])
         mapping_client_data = {}
         for area in mapping_area_clients.keys():
             clients = mapping_area_clients[area]
@@ -161,3 +166,19 @@ class Simulator:
         :return: Nothing
         """
         self.simulation_data.to_csv(f'{self.export_path}.csv', index=False)
+
+    def save_distribution_heatmap(self, distribution_per_area):
+        matrix = []
+        for k, indexes in distribution_per_area.items():
+            print(f'Area {k} has {len(indexes)} images')
+            v = [self.training_data.dataset.targets[index].item() for index in indexes]
+            count = Counter(v)
+            for i in range(10):
+                if i not in count:
+                    count[i] = 0
+            count = dict(sorted(count.items()))
+            matrix.append(count)
+
+        rows = [[d[k] for k in d] for d in matrix]
+        matrix = np.array(rows)
+        utils.plot_heatmap(matrix, len(self.training_data.dataset.classes), self.areas, 'Dirichlet', False)
