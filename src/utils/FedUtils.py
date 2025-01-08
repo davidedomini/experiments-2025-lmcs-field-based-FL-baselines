@@ -3,7 +3,9 @@ import random
 import torch
 import numpy as np
 import torch.nn as nn
+import seaborn as sns
 from models.MNIST import NNMnist
+import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, Subset, DataLoader
 
 def initialize_model(name):
@@ -57,6 +59,38 @@ def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]
             partitions[area].extend(selected_indices)
     return partitions
 
+def dirichlet_partitioning(data: Subset, areas: int, beta: float) -> dict[int, list[int]]:
+    # Implemented as in: https://proceedings.mlr.press/v97/yurochkin19a.html
+    min_size = 0
+    K = len(data.dataset.classes)
+    indices = data.indices
+    targets = data.dataset.targets
+    N = len(indices)
+    class_to_indices = {}
+    for index in indices:
+        c = targets[index].item()
+        if c in class_to_indices:
+            class_to_indices[c].append(index)
+        else:
+            class_to_indices[c] = [index]
+    partitions = {a: [] for a in range(areas)}
+    while min_size < 10:
+        idx_batch = [[] for _ in range(areas)]
+        for k in range(K):
+            idx_k = class_to_indices[k]
+            np.random.shuffle(idx_k)
+            proportions = np.random.dirichlet(np.repeat(beta, areas))
+            ## Balance
+            proportions = np.array([p * (len(idx_j) < N / areas) for p, idx_j in zip(proportions, idx_batch)])
+            proportions = proportions / proportions.sum()
+            proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
+            idx_batch = [idx_j + idx.tolist() for idx_j, idx in zip(idx_batch, np.split(idx_k, proportions))]
+            min_size = min([len(idx_j) for idx_j in idx_batch])
+    for j in range(areas):
+        np.random.shuffle(idx_batch[j])
+        partitions[j] = idx_batch[j]
+    return partitions
+
 def test_model(model, dataset, batch_size):
     criterion = nn.NLLLoss()
     model.eval()
@@ -72,3 +106,15 @@ def test_model(model, dataset, batch_size):
         total += len(labels)
     accuracy = correct / total
     return loss, accuracy
+
+def plot_heatmap(data, labels, areas, name, floating = True):
+    sns.heatmap(data, annot=True, cmap="YlGnBu",
+                xticklabels=[f'{i}' for i in range(labels)],
+                yticklabels=[f'{i}' for i in range(areas)],
+                fmt= '.3f' if floating else 'd'
+                )
+    plt.xlabel('Label')
+    plt.ylabel('Area')
+    plt.tight_layout()
+    plt.savefig(f'{name}.pdf')
+    plt.close()
