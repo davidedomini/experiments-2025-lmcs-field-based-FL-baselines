@@ -11,6 +11,8 @@ from torch.utils.data import Dataset, Subset, DataLoader
 def initialize_model(name):
     if name == 'MNIST':
         return NNMnist()
+    elif name == 'EMNIST':
+        return NNMnist(output_size=27)
     else:
         raise Exception(f'Model {name} not implemented! Please check :)')
 
