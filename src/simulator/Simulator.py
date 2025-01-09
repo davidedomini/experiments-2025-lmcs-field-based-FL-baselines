@@ -6,6 +6,7 @@ import utils.FedUtils as utils
 from collections import Counter
 from torchvision import datasets, transforms
 from client.FedAvgClient import FedAvgClient
+from client.FedProxyClient import FedProxyClient
 from server.FedAvgServer import FedAvgServer
 from client.ScaffoldClient import ScaffoldClient
 from server.ScaffoldServer import ScaffoldServer
@@ -54,11 +55,13 @@ class Simulator:
             return [FedAvgClient(index, self.dataset_name, client_data_mapping[index], self.batch_size, self.local_epochs) for index in range(self.n_clients)]
         elif self.algorithm == 'scaffold':
             return [ScaffoldClient(index, self.dataset_name, client_data_mapping[index], self.batch_size, self.local_epochs) for index in range(self.n_clients)]
+        elif self.algorithm == 'fedproxy':
+            return [FedProxyClient(index, self.dataset_name, client_data_mapping[index], self.batch_size, self.local_epochs) for index in range(self.n_clients)]
         else:
             raise Exception(f'Algorithm {self.algorithm} not supported! Please check :)')
 
     def initialize_server(self):
-        if self.algorithm == 'fedavg':
+        if self.algorithm == 'fedavg' or self.algorithm == 'fedproxy':
             return FedAvgServer(self.dataset_name)
         elif self.algorithm == 'scaffold':
             return ScaffoldServer(self.dataset_name)
@@ -83,7 +86,7 @@ class Simulator:
     def notify_server(self):
         client_data = {}
         for index, client in enumerate(self.clients):
-            if self.algorithm == 'fedavg':
+            if self.algorithm == 'fedavg' or self.algorithm =='fedproxy':
                 client_data[index] = client.model
             elif self.algorithm == 'scaffold':
                 client_data[index] = { 'model': client.model, 'client_control_state': client.client_control_state }
