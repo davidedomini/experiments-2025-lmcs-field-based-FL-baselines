@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, Subset, DataLoader
 
 def initialize_model(name):
-    if name == 'MNIST':
+    if name == 'MNIST' or name == 'FashionMNIST':
         return NNMnist()
     elif name == 'EMNIST':
         return NNMnist(output_size=27)
