@@ -12,7 +12,8 @@ class FedAvgClient:
         self.weight_decay=1e-4
         self.batch_size = batch_size
         self.training_set = dataset
-        self._model = initialize_model(dataset_name)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model = initialize_model(dataset_name).to(self.device)
 
     def train(self):
         labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
@@ -21,9 +22,11 @@ class FedAvgClient:
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         loss_func = nn.CrossEntropyLoss()
         losses = []
+        self.model.to(self.device)
         for epoch in range(self.epochs):
             batch_losses = []
             for step, (images, labels) in enumerate(train_loader):
+                images, labels = images.to(self.device), labels.to(self.device)
                 with torch.enable_grad():
                     self._model.train()
                     outputs = self._model(images)

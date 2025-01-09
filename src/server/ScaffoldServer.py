@@ -6,8 +6,9 @@ class ScaffoldServer:
         self.dataset = dataset
         self.clients_data = {}
         self.old_client_control_state = {}
-        self._model = initialize_model(dataset)
-        self._control_state = initialize_control_state(dataset)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self._model = initialize_model(dataset).to(self.device)
+        self._control_state = initialize_control_state(dataset, self.device)
 
     def aggregate(self):
         n = len(self.clients_data.keys())
@@ -28,7 +29,7 @@ class ScaffoldServer:
     def receive_client_update(self, client_data):
         self.clients_data = client_data
         if not self.old_client_control_state:
-            self.old_client_control_state = { k: initialize_control_state(self.dataset) for k, v in client_data.items() }
+            self.old_client_control_state = { k: initialize_control_state(self.dataset, self.device) for k, v in client_data.items() }
 
     @property
     def model(self):

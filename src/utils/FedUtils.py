@@ -16,8 +16,8 @@ def initialize_model(name):
     else:
         raise Exception(f'Model {name} not implemented! Please check :)')
 
-def initialize_control_state(experiment):
-    control_state = initialize_model(experiment)
+def initialize_control_state(experiment, device):
+    control_state = initialize_model(experiment).to(device)
     for param in control_state.parameters():
         nn.init.constant_(param, 0.0)
     return control_state.state_dict()
@@ -93,12 +93,13 @@ def dirichlet_partitioning(data: Subset, areas: int, beta: float) -> dict[int, l
         partitions[j] = idx_batch[j]
     return partitions
 
-def test_model(model, dataset, batch_size):
+def test_model(model, dataset, batch_size, device):
     criterion = nn.NLLLoss()
     model.eval()
     loss, total, correct = 0.0, 0.0, 0.0
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     for batch_index, (images, labels) in enumerate(data_loader):
+        images, labels = images.to(device), labels.to(device)
         outputs = model(images)
         batch_loss = criterion(outputs, labels)
         loss += batch_loss.item()

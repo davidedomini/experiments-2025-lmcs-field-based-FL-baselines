@@ -1,3 +1,4 @@
+import copy
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -14,8 +15,9 @@ class ScaffoldClient:
         self.batch_size = batch_size
         self._model = initialize_model(dataset_name)
         self.global_model = self._model
-        self.server_control_state = initialize_control_state(dataset_name)
-        self._client_control_state = initialize_control_state(dataset_name)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.server_control_state = initialize_control_state(dataset_name, self.device)
+        self._client_control_state = initialize_control_state(dataset_name, self.device)
 
     def train(self):
         labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
@@ -27,9 +29,11 @@ class ScaffoldClient:
         loss_func = nn.CrossEntropyLoss()
         losses = []
         tau = 0
+        self._model.to(self.device)
         for epoch in range(self.epochs):
             batch_losses = []
             for step, (images, labels) in enumerate(train_loader):
+                images, labels = images.to(self.device), labels.to(self.device)
                 with torch.enable_grad():
                     self._model.train()
                     outputs = self._model(images)

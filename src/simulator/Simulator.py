@@ -26,6 +26,7 @@ class Simulator:
         self.simulation_data = pd.DataFrame(columns=['Round','TrainingLoss', 'ValidationLoss', 'ValidationAccuracy'])
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def seed_everything(self, seed):
         random.seed(seed)
@@ -129,7 +130,7 @@ class Simulator:
             dataset = self.validation_data
         else:
             dataset = self.get_dataset(False)
-        loss, accuracy = utils.test_model(model, dataset, self.batch_size)
+        loss, accuracy = utils.test_model(model, dataset, self.batch_size, self.device)
         if validation:
             print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
         else:
