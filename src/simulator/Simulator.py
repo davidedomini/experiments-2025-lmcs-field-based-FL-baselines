@@ -176,7 +176,7 @@ class Simulator:
             print(f'Area {k} has {len(indexes)} images')
             v = [self.training_data.dataset.targets[index].item() for index in indexes]
             count = Counter(v)
-            for i in range(10):
+            for i in range(len(self.training_data.dataset.classes)):
                 if i not in count:
                     count[i] = 0
             count = dict(sorted(count.items()))

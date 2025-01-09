@@ -48,6 +48,7 @@ def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]
             class_to_indices[c].append(index)
         else:
             class_to_indices[c] = [index]
+
     areas = distribution.shape[0]
     targets_cardinality = distribution.shape[1]
     max_examples_per_area = int(math.floor(len(indices) / areas))
@@ -55,7 +56,7 @@ def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]
     partitions = { a: [] for a in range(areas) }
     for area in range(areas):
         elements_per_class_in_area = elements_per_class[area, :].tolist()
-        for c in range(targets_cardinality):
+        for c in sorted(class_to_indices.keys()):
             elements = min(elements_per_class_in_area[c], class_counts[c].item())
             selected_indices = random.sample(class_to_indices[c], elements)
             partitions[area].extend(selected_indices)
@@ -64,7 +65,6 @@ def partitioning(distribution: np.ndarray, data: Subset) -> dict[int, list[int]]
 def dirichlet_partitioning(data: Subset, areas: int, beta: float) -> dict[int, list[int]]:
     # Implemented as in: https://proceedings.mlr.press/v97/yurochkin19a.html
     min_size = 0
-    K = len(data.dataset.classes)
     indices = data.indices
     targets = data.dataset.targets
     N = len(indices)
@@ -78,7 +78,7 @@ def dirichlet_partitioning(data: Subset, areas: int, beta: float) -> dict[int, l
     partitions = {a: [] for a in range(areas)}
     while min_size < 10:
         idx_batch = [[] for _ in range(areas)]
-        for k in range(K):
+        for k in sorted(class_to_indices.keys()):
             idx_k = class_to_indices[k]
             np.random.shuffle(idx_k)
             proportions = np.random.dirichlet(np.repeat(beta, areas))
