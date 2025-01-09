@@ -18,8 +18,8 @@ class FedProxyClient:
         self._model = initialize_model(dataset_name).to(self.device)
 
     def train(self):
-        labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
-        print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
+        # labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
+        # print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
         global_weights = copy.deepcopy(self._model.state_dict())
         global_model = initialize_model(self.dataset_name)
         global_model.load_state_dict(global_weights)
