@@ -1,3 +1,4 @@
+import copy
 import torch
 from torch import nn
 from utils.FedUtils import initialize_model
@@ -40,7 +41,7 @@ class FedAvgClient:
         return sum(losses) / len(losses)
 
     def notify_updates(self, global_model):
-        self._model.load_state_dict(global_model.state_dict())
+        self._model.load_state_dict(copy.deepcopy(global_model.state_dict()))
 
     @property
     def model(self):

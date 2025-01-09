@@ -14,7 +14,8 @@ class ScaffoldClient:
         self.training_set = dataset
         self.batch_size = batch_size
         self._model = initialize_model(dataset_name)
-        self.global_model = self._model
+        self.global_model = initialize_model(dataset_name)
+        self.global_model.load_state_dict(copy.deepcopy(self._model.state_dict()))
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.server_control_state = initialize_control_state(dataset_name, self.device)
         self._client_control_state = initialize_control_state(dataset_name, self.device)
@@ -65,8 +66,10 @@ class ScaffoldClient:
             ccs_dict[key] = ccs_dict[key] - scs_dict[key] + ((1 / (tau * self.lr)) * (global_model_dict[key] - local_model_dict[key]))
 
     def notify_updates(self, global_model, server_control_state):
-        self._model.load_state_dict(global_model.state_dict())
-        self.global_model.load_state_dict(global_model.state_dict())
+        self._model.load_state_dict(copy.deepcopy(global_model.state_dict()))
+        self.global_model.load_state_dict(copy.deepcopy(global_model.state_dict()))
+        self._model.to(self.device)
+        self.global_model.to(self.device)
         self.server_control_state = server_control_state
 
     @property
