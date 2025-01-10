@@ -60,6 +60,9 @@ if __name__ == '__main__':
     data_dir        = 'data'
     max_seed        = 5
 
+    data_output_directory = Path(data_dir)
+    data_output_directory.mkdir(parents=True, exist_ok=True)
+
     # Experiments IID
     partitioning = 'iid'
     experiment_name = 'fedavg'
@@ -68,7 +71,7 @@ if __name__ == '__main__':
     for seed in range(max_seed):
         seed_start = time.time()
         for dataset in datasets:
-            simulator = Simulator(experiment_name, partitioning, areas, dataset, clients, batch_size, local_epochs, data_dir)
+            simulator = Simulator(experiment_name, partitioning, areas, dataset, clients, batch_size, local_epochs, data_dir, seed)
             simulator.seed_everything(seed)
             simulator.start(global_rounds)
             total_experiments += 1
@@ -87,7 +90,7 @@ if __name__ == '__main__':
         for experiment_name in experiment_names:
             for dataset in datasets:
                 for area in areas:
-                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir)
+                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
                     simulator.seed_everything(seed)
                     simulator.start(global_rounds)
                     total_experiments += 1
@@ -106,7 +109,7 @@ if __name__ == '__main__':
         for experiment_name in experiment_names:
             for dataset in ['EMNIST']:
                 for area in areas:
-                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir)
+                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
                     simulator.seed_everything(seed)
                     simulator.start(global_rounds)
                     total_experiments += 1
@@ -125,7 +128,7 @@ if __name__ == '__main__':
         for experiment_name in experiment_names:
             for dataset in ['MNIST', 'FashionMNIST']:
                 for area in areas:
-                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir)
+                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
                     simulator.seed_everything(seed)
                     simulator.start(global_rounds)
         seed_end = time.time()

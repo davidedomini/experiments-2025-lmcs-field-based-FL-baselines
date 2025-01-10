@@ -14,7 +14,7 @@ from torch.utils.data import Subset, random_split
 
 class Simulator:
 
-    def __init__(self, algorithm, partitioning, areas, dataset_name, n_clients, batch_size, local_epochs, data_folder):
+    def __init__(self, algorithm, partitioning, areas, dataset_name, n_clients, batch_size, local_epochs, data_folder, seed):
         self.batch_size = batch_size
         self.local_epochs = local_epochs
         self.dataset_name = dataset_name
@@ -23,7 +23,7 @@ class Simulator:
         self.algorithm = algorithm
         self.areas = areas
         self.n_clients = n_clients
-        self.export_path = f'{data_folder}/algorithm-{self.algorithm}_dataset-{dataset_name}_partitioning-{self.partitioning}_areas-{self.areas}_clients-{self.n_clients}'
+        self.export_path = f'{data_folder}/seed-{seed}_algorithm-{self.algorithm}_dataset-{dataset_name}_partitioning-{self.partitioning}_areas-{self.areas}_clients-{self.n_clients}'
         self.simulation_data = pd.DataFrame(columns=['Round','TrainingLoss', 'ValidationLoss', 'ValidationAccuracy'])
         self.clients = self.initialize_clients()
         self.server = self.initialize_server()
@@ -134,9 +134,9 @@ class Simulator:
         else:
             dataset = self.get_dataset(False)
         loss, accuracy = utils.test_model(model, dataset, self.batch_size, self.device)
-        if validation:
-            print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
-        else:
+        # if validation:
+            # print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
+        if not validation:
             data = pd.DataFrame({'Loss': [loss], 'Accuracy': [accuracy]})
             data.to_csv(f'{self.export_path}-test.csv', index=False)
         return loss, accuracy
@@ -176,7 +176,7 @@ class Simulator:
     def save_distribution_heatmap(self, distribution_per_area):
         matrix = []
         for k, indexes in distribution_per_area.items():
-            print(f'Area {k} has {len(indexes)} images')
+            # print(f'Area {k} has {len(indexes)} images')
             v = [self.training_data.dataset.targets[index].item() for index in indexes]
             count = Counter(v)
             for i in range(len(self.training_data.dataset.classes)):
