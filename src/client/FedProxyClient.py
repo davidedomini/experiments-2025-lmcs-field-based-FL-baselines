@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, random_split
 class FedProxyClient:
 
     def __init__(self, mid, dataset_name, dataset, batch_size, epochs):
+        self.mu = 0.1
         self.mid = mid
         self.lr = 0.001
         self.epochs = epochs
@@ -20,11 +21,13 @@ class FedProxyClient:
     def train(self):
         # labels = [self.training_set[idx][1] for idx in range(len(self.training_set))]
         # print(f'Client {self.mid} --> training set size {len(self.training_set)} classes {set(labels)}')
-        global_weights = copy.deepcopy(self._model.state_dict())
+
+        global_weights = copy.deepcopy(self._model.state_dict()) # w^t
         global_model = initialize_model(self.dataset_name)
         global_model.load_state_dict(global_weights)
         global_model.to(self.device)
         global_weights = list(global_model.parameters())
+
         train_loader = DataLoader(self.training_set, batch_size=self.batch_size, shuffle=True)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         loss_func = nn.CrossEntropyLoss()
@@ -39,17 +42,19 @@ class FedProxyClient:
                     outputs = self._model(images)
                     loss = loss_func(outputs, labels)
                     optimizer.zero_grad()
-                    prox_term = 0.0
-                    mu = 0.1
-                    for p_i, param in enumerate(self._model.parameters()):
-                        prox_term += (mu / 2) * torch.norm((param - global_weights[p_i])) ** 2
-                    loss += prox_term
+                    loss = loss + self.proximal_term(self._model, global_weights)
                     loss.backward()
                     optimizer.step()
                     batch_losses.append(loss.item())
             mean_epoch_loss = sum(batch_losses) / len(batch_losses)
             losses.append(mean_epoch_loss)
         return sum(losses) / len(losses)
+
+    def proximal_term(self, trained_model, server_model):
+        prox_term = 0.0
+        for p_i, param in enumerate(trained_model.parameters()):
+            prox_term += (self.mu / 2) * torch.norm((param - server_model[p_i])) ** 2
+        return prox_term
 
     def notify_updates(self, global_model):
         self._model.load_state_dict(copy.deepcopy(global_model.state_dict()))
