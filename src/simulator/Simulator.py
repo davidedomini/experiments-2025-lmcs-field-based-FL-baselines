@@ -70,7 +70,7 @@ class Simulator:
 
     def notify_clients(self):
         for client in self.clients:
-            if self.algorithm == 'fedavg':
+            if self.algorithm == 'fedavg' or self.algorithm == 'fedproxy':
                 client.notify_updates(self.server.model)
             elif self.algorithm == 'scaffold':
                 client.notify_updates(self.server.model, self.server.control_state)
