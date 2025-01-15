@@ -14,9 +14,10 @@ class ScaffoldClient:
         self.training_set = dataset
         self.batch_size = batch_size
         self._model = initialize_model(dataset_name)
-        self.global_model = initialize_model(dataset_name)
-        self.global_model.load_state_dict(copy.deepcopy(self._model.state_dict()))
+        # self.global_model = initialize_model(dataset_name)
+        self.global_model = self._model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cpu")
         self.server_control_state = initialize_control_state(dataset_name, self.device)
         self._client_control_state = initialize_control_state(dataset_name, self.device)
 

@@ -57,32 +57,34 @@ if __name__ == '__main__':
     batch_size      = 32
     local_epochs    = 2
     global_rounds   = 20
-    data_dir        = 'data'
+    data_dir        = 'data-debug'
     max_seed        = 5
 
     data_output_directory = Path(data_dir)
     data_output_directory.mkdir(parents=True, exist_ok=True)
 
     # Experiments IID
-    partitioning = 'iid'
-    experiment_name = 'fedavg'
-    areas = 3
-    iid_start = time.time()
-    for seed in range(max_seed):
-        seed_start = time.time()
-        for dataset in datasets:
-            simulator = Simulator(experiment_name, partitioning, areas, dataset, clients, batch_size, local_epochs, data_dir, seed)
-            simulator.seed_everything(seed)
-            simulator.start(global_rounds)
-            total_experiments += 1
-        seed_end = time.time()
-        print(f'Seed {seed} took {seed_end - seed_start} seconds')
-    iid_end = time.time()
-    print(f'IID experiments took {iid_end - iid_start} seconds')
+    # partitioning = 'iid'
+    # # experiment_name = 'fedavg'
+    # experiment_name = 'scaffold'
+    # areas = 3
+    # iid_start = time.time()
+    # for seed in range(max_seed):
+    #     seed_start = time.time()
+    #     for dataset in datasets:
+    #         simulator = Simulator(experiment_name, partitioning, areas, dataset, clients, batch_size, local_epochs, data_dir, seed)
+    #         simulator.seed_everything(seed)
+    #         simulator.start(global_rounds)
+    #         total_experiments += 1
+    #     seed_end = time.time()
+    #     print(f'Seed {seed} took {seed_end - seed_start} seconds')
+    # iid_end = time.time()
+    # print(f'IID experiments took {iid_end - iid_start} seconds')
 
     # Experiments non-IID dirichlet
     partitioning = 'dirichlet'
-    experiment_names = ['fedavg', 'fedproxy', 'scaffold']
+    # experiment_names = ['fedavg', 'fedproxy', 'scaffold']
+    experiment_names = ['scaffold']
     areas = [3, 5, 9]
     non_iid_start = time.time()
     for seed in range(max_seed):
@@ -90,6 +92,7 @@ if __name__ == '__main__':
         for experiment_name in experiment_names:
             for dataset in datasets:
                 for area in areas:
+                    print(f'starting dirichlet seed {seed} experiment {experiment_name} dataset {dataset} area {area}')
                     simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
                     simulator.seed_everything(seed)
                     simulator.start(global_rounds)
@@ -100,44 +103,46 @@ if __name__ == '__main__':
     print(f'non-IID experiments took {non_iid_end - non_iid_start} seconds')
 
     # Experiments non-IID hard EMNIST
-    partitioning = 'hard'
-    experiment_names = ['fedavg', 'fedproxy', 'scaffold']
-    areas = [3, 5, 9]
-    non_iid_start = time.time()
-    for seed in range(max_seed):
-        seed_start = time.time()
-        for experiment_name in experiment_names:
-            for dataset in ['EMNIST']:
-                for area in areas:
-                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
-                    simulator.seed_everything(seed)
-                    simulator.start(global_rounds)
-                    total_experiments += 1
-        seed_end = time.time()
-        print(f'Seed {seed} took {seed_end - seed_start} seconds')
-    non_iid_end = time.time()
-    print(f'non-IID experiments hard EMNIST took {non_iid_end - non_iid_start} seconds')
-
-    # Experiments non-IID hard MNIST and Fashion
-    partitioning = 'hard'
-    experiment_names = ['fedavg', 'fedproxy', 'scaffold']
-    areas = [3]
-    non_iid_start = time.time()
-    for seed in range(max_seed):
-        seed_start = time.time()
-        for experiment_name in experiment_names:
-            for dataset in ['MNIST', 'FashionMNIST']:
-                for area in areas:
-                    simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
-                    simulator.seed_everything(seed)
-                    simulator.start(global_rounds)
-        seed_end = time.time()
-        print(f'Seed {seed} took {seed_end - seed_start} seconds')
-    non_iid_end = time.time()
-    print(f'non-IID experiments hard MNIST and Fashion took {non_iid_end - non_iid_start} seconds')
-
-
-    print(f'Total experiments {total_experiments}')
+    # partitioning = 'hard'
+    # experiment_names = ['fedavg', 'fedproxy', 'scaffold']
+    # areas = [3, 5, 9]
+    # non_iid_start = time.time()
+    # for seed in range(max_seed):
+    #     seed_start = time.time()
+    #     for experiment_name in experiment_names:
+    #         for dataset in ['EMNIST']:
+    #             for area in areas:
+    #                 print(f'starting hard seed {seed} experiment {experiment_name} dataset {dataset} area {area}')
+    #                 simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
+    #                 simulator.seed_everything(seed)
+    #                 simulator.start(global_rounds)
+    #                 total_experiments += 1
+    #     seed_end = time.time()
+    #     print(f'Seed {seed} took {seed_end - seed_start} seconds')
+    # non_iid_end = time.time()
+    # print(f'non-IID experiments hard EMNIST took {non_iid_end - non_iid_start} seconds')
+    #
+    # # Experiments non-IID hard MNIST and Fashion
+    # partitioning = 'hard'
+    # experiment_names = ['fedavg', 'fedproxy', 'scaffold']
+    # areas = [3]
+    # non_iid_start = time.time()
+    # for seed in range(max_seed):
+    #     seed_start = time.time()
+    #     for experiment_name in experiment_names:
+    #         for dataset in ['MNIST', 'FashionMNIST']:
+    #             for area in areas:
+    #                 print(f'starting hard seed {seed} experiment {experiment_name} dataset {dataset} area {area}')
+    #                 simulator = Simulator(experiment_name, partitioning, area, dataset, clients, batch_size, local_epochs, data_dir, seed)
+    #                 simulator.seed_everything(seed)
+    #                 simulator.start(global_rounds)
+    #     seed_end = time.time()
+    #     print(f'Seed {seed} took {seed_end - seed_start} seconds')
+    # non_iid_end = time.time()
+    # print(f'non-IID experiments hard MNIST and Fashion took {non_iid_end - non_iid_start} seconds')
+    #
+    #
+    # print(f'Total experiments {total_experiments}')
 
     # HYPERPARAMETERS_NAME = 'LEARNING_HYPERPARAMETERS'
     # partitioning = 'dirichlet'

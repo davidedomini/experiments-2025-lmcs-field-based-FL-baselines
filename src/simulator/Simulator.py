@@ -134,8 +134,8 @@ class Simulator:
         else:
             dataset = self.get_dataset(False)
         loss, accuracy = utils.test_model(model, dataset, self.batch_size, self.device)
-        # if validation:
-            # print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
+        if validation:
+            print(f'Validation ----> loss: {loss}   accuracy: {accuracy}')
         if not validation:
             data = pd.DataFrame({'Loss': [loss], 'Accuracy': [accuracy]})
             data.to_csv(f'{self.export_path}-test.csv', index=False)
