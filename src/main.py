@@ -71,7 +71,7 @@ if __name__ == '__main__':
     partitioning = 'dirichlet'
     experiment_names = ['fedavg', 'fedproxy', 'scaffold']
     # experiment_names = ['fedavg']
-    areas = [3, 5, 9]
+    areas = [3, 6, 9]
     non_iid_start = time.time()
     for seed in range(max_seed):
         seed_start = time.time()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     # Experiments non-IID hard EMNIST
     partitioning = 'hard'
     experiment_names = ['fedavg', 'fedproxy', 'scaffold']
-    areas = [3, 5, 9]
+    areas = [3, 6, 9]
     non_iid_start = time.time()
     for seed in range(max_seed):
         seed_start = time.time()
