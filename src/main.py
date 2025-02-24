@@ -46,7 +46,7 @@ if __name__ == '__main__':
     local_epochs    = 2
     global_rounds   = 30
     data_dir        = 'data-iot'
-    max_seed        = 5
+    max_seed        = 20
 
     data_output_directory = Path(data_dir)
     data_output_directory.mkdir(parents=True, exist_ok=True)
